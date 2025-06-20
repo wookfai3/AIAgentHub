@@ -105,13 +105,13 @@
   color: var(--brand-gray);
   background: white;
   padding: 0 4px;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .form-input:focus + .floating-label,
 .form-input:not(:placeholder-shown) + .floating-label {
   top: 0;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--brand-blue);
 }
 

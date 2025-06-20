@@ -59,23 +59,23 @@ export default function Login() {
     <div className="min-h-screen bg-brand-bg flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo and Header Section */}
-        <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-brand-blue rounded-xl flex items-center justify-center mb-4">
-            <Bot className="text-white text-2xl" size={32} />
+        <div className="text-center mb-6">
+          <div className="mx-auto w-12 h-12 bg-brand-blue rounded-lg flex items-center justify-center mb-3">
+            <Bot className="text-white" size={20} />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Agent Management</h1>
-          <p className="text-brand-gray">Sign in to manage your AI agents</p>
+          <h1 className="text-xl font-semibold text-gray-900 mb-1">AI Agent Management</h1>
+          <p className="text-sm text-brand-gray">Sign in to manage your AI agents</p>
         </div>
 
         {/* Login Form Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Username Field */}
             <div className="input-group relative">
               <Input
                 id="username"
                 type="text"
-                className={`form-input w-full px-3 py-3 ${
+                className={`form-input w-full px-3 py-2.5 text-sm ${
                   form.formState.errors.username ? 'error-state border-red-500' : ''
                 }`}
                 placeholder=" "
@@ -85,8 +85,8 @@ export default function Login() {
                 Username
               </Label>
               {form.formState.errors.username && (
-                <div className="error-message mt-1 text-sm text-brand-error flex items-center">
-                  <TriangleAlert className="w-4 h-4 mr-1" />
+                <div className="error-message mt-1 text-xs text-brand-error flex items-center">
+                  <TriangleAlert className="w-3 h-3 mr-1" />
                   <span>{form.formState.errors.username.message}</span>
                 </div>
               )}
@@ -98,7 +98,7 @@ export default function Login() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  className={`form-input w-full px-3 py-3 pr-12 ${
+                  className={`form-input w-full px-3 py-2.5 pr-10 text-sm ${
                     form.formState.errors.password ? 'error-state border-red-500' : ''
                   }`}
                   placeholder=" "
@@ -111,15 +111,15 @@ export default function Login() {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-brand-gray hover:text-gray-700 h-auto p-0"
+                  className="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-brand-gray hover:text-gray-700 h-auto p-1"
                   onClick={togglePasswordVisibility}
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 </Button>
               </div>
               {form.formState.errors.password && (
-                <div className="error-message mt-1 text-sm text-brand-error flex items-center">
-                  <TriangleAlert className="w-4 h-4 mr-1" />
+                <div className="error-message mt-1 text-xs text-brand-error flex items-center">
+                  <TriangleAlert className="w-3 h-3 mr-1" />
                   <span>{form.formState.errors.password.message}</span>
                 </div>
               )}
@@ -133,11 +133,11 @@ export default function Login() {
                   checked={rememberMe}
                   onCheckedChange={(checked) => setRememberMe(!!checked)}
                 />
-                <Label htmlFor="remember" className="text-sm text-gray-600">
+                <Label htmlFor="remember" className="text-xs text-gray-600">
                   Remember me
                 </Label>
               </div>
-              <a href="#" className="text-sm text-brand-blue hover:text-blue-700 font-medium">
+              <a href="#" className="text-xs text-brand-blue hover:text-blue-700 font-medium">
                 Forgot password?
               </a>
             </div>
@@ -145,12 +145,12 @@ export default function Login() {
             {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full bg-brand-blue hover:bg-blue-700 text-white py-3 px-4 font-medium transition-colors duration-200 disabled:opacity-50"
+              className="w-full bg-brand-blue hover:bg-blue-700 text-white py-2.5 px-4 text-sm font-medium transition-colors duration-200 disabled:opacity-50"
               disabled={loginMutation.isPending}
             >
               {loginMutation.isPending ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
                   Signing In...
                 </>
               ) : (
@@ -160,18 +160,18 @@ export default function Login() {
 
             {/* Success Message */}
             {loginMutation.isSuccess && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 slide-in">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 slide-in">
                 <div className="flex items-center">
-                  <CheckCircle className="text-brand-success w-5 h-5 mr-3" />
-                  <span className="text-sm text-green-800">Login successful! Redirecting...</span>
+                  <CheckCircle className="text-brand-success w-4 h-4 mr-2" />
+                  <span className="text-xs text-green-800">Login successful! Redirecting...</span>
                 </div>
               </div>
             )}
           </form>
 
           {/* Additional Links */}
-          <div className="mt-8 pt-6 border-t border-gray-100 text-center">
-            <p className="text-sm text-brand-gray">
+          <div className="mt-6 pt-4 border-t border-gray-100 text-center">
+            <p className="text-xs text-brand-gray">
               Need access?{" "}
               <a href="#" className="text-brand-blue hover:text-blue-700 font-medium">
                 Contact Administrator
@@ -181,7 +181,7 @@ export default function Login() {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-8 text-sm text-brand-gray">
+        <div className="text-center mt-6 text-xs text-brand-gray">
           <p>&copy; 2024 AI Agent Management Platform. All rights reserved.</p>
         </div>
       </div>
