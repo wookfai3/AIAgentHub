@@ -15,13 +15,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         grant_type: "password",
         username,
         password,
-        client_id: process.env.CLIENT_ID || "default_client_id",
-        client_secret: process.env.CLIENT_SECRET || "default_client_secret",
+        client_id: process.env.CLIENT_ID || "mywebclient",
+        client_secret: process.env.CLIENT_SECRET || "mysecretclientpassword",
         scope: "openid profile email"
       });
 
       // Call external authentication API
-      const response = await fetch("https://ai.metqm.com/api/adminportal/get_agentlist_r1.cfm", {
+      const response = await fetch("https://ai.metqm.com/api/adminportal/get_accesstoken.cfm", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
