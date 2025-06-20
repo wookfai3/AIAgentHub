@@ -17,7 +17,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password,
         client_id: process.env.CLIENT_ID || "default_client_id",
         client_secret: process.env.CLIENT_SECRET || "default_client_secret",
-        scope: "admin"
+        scope: "openid profile email"
       });
 
       // Call external authentication API
