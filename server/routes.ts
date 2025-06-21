@@ -144,6 +144,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/agents", async (req, res) => {
     try {
       const token = req.cookies?.auth_token;
+      console.log("Cookies received:", req.cookies);
+      console.log("Auth token:", token);
       
       if (!token) {
         return res.status(401).json({ message: "Not authenticated" });
