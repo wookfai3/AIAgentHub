@@ -1,12 +1,18 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Edit, Trash2, Search, Bot } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus, Edit, Trash2, Search, Bot, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { insertAgentSchema } from "@shared/schema";
 
 interface Agent {
   id: number;
@@ -19,8 +25,21 @@ interface Agent {
 
 export default function AgentList() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Form for creating/editing agents
+  const form = useForm({
+    resolver: zodResolver(insertAgentSchema),
+    defaultValues: {
+      agent_name: "",
+      description: "",
+      first_message: "",
+      createdBy: "admin" // Default user
+    }
+  });
 
   // Fetch agents from API
   const { data: agentsData, isLoading, error } = useQuery({
@@ -32,6 +51,33 @@ export default function AgentList() {
   });
 
   const agents = agentsData?.agents || [];
+
+  // Create/Update mutation
+  const saveAgentMutation = useMutation({
+    mutationFn: async (agentData: any) => {
+      const url = editingAgent ? `/api/agents/${editingAgent.id}` : "/api/agents";
+      const method = editingAgent ? "PATCH" : "POST";
+      const response = await apiRequest(method, url, agentData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/agents'] });
+      toast({
+        title: "Success",
+        description: editingAgent ? "Agent updated successfully" : "Agent created successfully",
+      });
+      setIsSheetOpen(false);
+      setEditingAgent(null);
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   // Delete mutation
   const deleteMutation = useMutation({
@@ -61,6 +107,32 @@ export default function AgentList() {
     }
   };
 
+  const handleEdit = (agent: Agent) => {
+    setEditingAgent(agent);
+    form.reset({
+      agent_name: agent.agent_name,
+      description: agent.description,
+      first_message: agent.first_message,
+      createdBy: agent.createdBy
+    });
+    setIsSheetOpen(true);
+  };
+
+  const handleNew = () => {
+    setEditingAgent(null);
+    form.reset({
+      agent_name: "",
+      description: "",
+      first_message: "",
+      createdBy: "admin"
+    });
+    setIsSheetOpen(true);
+  };
+
+  const onSubmit = (data: any) => {
+    saveAgentMutation.mutate(data);
+  };
+
   const filteredAgents = agents.filter((agent: Agent) =>
     agent.agent_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     agent.description?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -82,7 +154,7 @@ export default function AgentList() {
           <h1 className="text-lg font-semibold text-gray-900">Agents</h1>
           <p className="text-xs text-gray-600">Manage your AI agents</p>
         </div>
-        <Button size="sm" className="text-xs">
+        <Button size="sm" className="text-xs" onClick={handleNew}>
           <Plus className="w-3.5 h-3.5 mr-1" />
           New Agent
         </Button>
@@ -114,7 +186,7 @@ export default function AgentList() {
             {searchTerm ? "No agents found matching your search." : "No agents created yet."}
           </p>
           {!searchTerm && (
-            <Button size="sm" className="mt-3 text-xs">
+            <Button size="sm" className="mt-3 text-xs" onClick={handleNew}>
               <Plus className="w-3.5 h-3.5 mr-1" />
               Create your first agent
             </Button>
@@ -143,6 +215,7 @@ export default function AgentList() {
                       size="sm"
                       className="h-7 w-7 p-0"
                       title="Edit agent"
+                      onClick={() => handleEdit(agent)}
                     >
                       <Edit className="w-3 h-3" />
                     </Button>
@@ -185,6 +258,105 @@ export default function AgentList() {
           ))}
         </div>
       )}
+
+      {/* Sliding Form Sheet */}
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <SheetContent side="right" className="w-[400px] sm:w-[540px]">
+          <SheetHeader>
+            <SheetTitle>
+              {editingAgent ? "Edit Agent" : "Create New Agent"}
+            </SheetTitle>
+          </SheetHeader>
+          
+          <div className="mt-6">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="agent_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Agent Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter agent name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Describe what this agent does"
+                          className="min-h-[100px]"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="first_message"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Message</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Enter the agent's initial greeting message"
+                          className="min-h-[120px]"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="createdBy"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Created By</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter creator name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex items-center gap-3 pt-4">
+                  <Button 
+                    type="submit" 
+                    disabled={saveAgentMutation.isPending}
+                    className="flex-1"
+                  >
+                    {saveAgentMutation.isPending ? "Saving..." : (editingAgent ? "Update Agent" : "Create Agent")}
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setIsSheetOpen(false)}
+                    disabled={saveAgentMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
