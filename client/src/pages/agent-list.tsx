@@ -263,7 +263,7 @@ export default function AgentList() {
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent side="right" className="w-[400px] sm:w-[540px] flex flex-col">
           <SheetHeader className="flex-shrink-0">
-            <SheetTitle>
+            <SheetTitle className="text-lg font-semibold">
               {editingAgent ? "Edit Agent" : "Create New Agent"}
             </SheetTitle>
           </SheetHeader>
@@ -276,11 +276,11 @@ export default function AgentList() {
                   name="agent_name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Agent Name</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-700">Agent Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter agent name" {...field} />
+                        <Input placeholder="Enter agent name" className="text-sm h-9" {...field} />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs" />
                     </FormItem>
                   )}
                 />
@@ -290,15 +290,15 @@ export default function AgentList() {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-700">Description</FormLabel>
                       <FormControl>
                         <Textarea 
                           placeholder="Describe what this agent does"
-                          className="min-h-[100px]"
+                          className="min-h-[80px] text-sm resize-none"
                           {...field} 
                         />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs" />
                     </FormItem>
                   )}
                 />
@@ -308,15 +308,15 @@ export default function AgentList() {
                   name="first_message"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>First Message</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-700">First Message</FormLabel>
                       <FormControl>
                         <Textarea 
                           placeholder="Enter the agent's initial greeting message"
-                          className="min-h-[120px]"
+                          className="min-h-[100px] text-sm resize-none"
                           {...field} 
                         />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs" />
                     </FormItem>
                   )}
                 />
@@ -326,11 +326,11 @@ export default function AgentList() {
                   name="createdBy"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Created By</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-700">Created By</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter creator name" {...field} />
+                        <Input placeholder="Enter creator name" className="text-sm h-9" {...field} />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs" />
                     </FormItem>
                   )}
                 />
@@ -339,7 +339,7 @@ export default function AgentList() {
                   <Button 
                     type="submit" 
                     disabled={saveAgentMutation.isPending}
-                    className="flex-1"
+                    className="flex-1 text-sm h-9"
                   >
                     {saveAgentMutation.isPending ? "Saving..." : (editingAgent ? "Update Agent" : "Create Agent")}
                   </Button>
@@ -348,6 +348,7 @@ export default function AgentList() {
                     variant="outline" 
                     onClick={() => setIsSheetOpen(false)}
                     disabled={saveAgentMutation.isPending}
+                    className="text-sm h-9"
                   >
                     Cancel
                   </Button>
