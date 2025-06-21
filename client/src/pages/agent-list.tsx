@@ -261,16 +261,16 @@ export default function AgentList() {
 
       {/* Sliding Form Sheet */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent side="right" className="w-[400px] sm:w-[540px]">
-          <SheetHeader>
+        <SheetContent side="right" className="w-[400px] sm:w-[540px] flex flex-col">
+          <SheetHeader className="flex-shrink-0">
             <SheetTitle>
               {editingAgent ? "Edit Agent" : "Create New Agent"}
             </SheetTitle>
           </SheetHeader>
           
-          <div className="mt-6">
+          <div className="flex-1 overflow-y-auto mt-6 pr-1">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-6">
                 <FormField
                   control={form.control}
                   name="agent_name"
@@ -335,7 +335,7 @@ export default function AgentList() {
                   )}
                 />
 
-                <div className="flex items-center gap-3 pt-4">
+                <div className="flex items-center gap-3 pt-4 sticky bottom-0 bg-background border-t mt-6 -mx-1 px-1 py-4">
                   <Button 
                     type="submit" 
                     disabled={saveAgentMutation.isPending}
