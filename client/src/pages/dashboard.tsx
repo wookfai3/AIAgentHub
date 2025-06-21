@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { authApi } from "@/lib/auth";
-import AgentList from "./agent-list";
+import AgentList from "@/pages/agent-list";
 
 const menuItems = [
   { id: "agents", icon: Bot, label: "Agent", path: "/dashboard/agents" },

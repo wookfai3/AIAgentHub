@@ -28,6 +28,42 @@ export class MemStorage implements IStorage {
     this.currentUserId = 1;
     this.currentSessionId = 1;
     this.currentAgentId = 1;
+    
+    // Add demo agents for testing
+    this.seedDemoAgents();
+  }
+
+  private seedDemoAgents() {
+    const demoAgents = [
+      {
+        name: "Customer Support Agent",
+        description: "Handles customer inquiries and support tickets",
+        firstMessage: "Hello! I'm here to help you with any questions or issues you may have.",
+        createdBy: "admin",
+      },
+      {
+        name: "Sales Assistant",
+        description: "Helps with product information and sales inquiries",
+        firstMessage: "Hi there! I can help you find the perfect product for your needs.",
+        createdBy: "admin",
+      },
+      {
+        name: "Technical Support",
+        description: "Provides technical assistance and troubleshooting",
+        firstMessage: "Welcome! I'm here to help resolve any technical issues you're experiencing.",
+        createdBy: "admin",
+      }
+    ];
+
+    demoAgents.forEach(agentData => {
+      const id = this.currentAgentId++;
+      const agent: Agent = {
+        ...agentData,
+        id,
+        createdAt: new Date()
+      };
+      this.agents.set(id, agent);
+    });
   }
 
   async getUser(id: number): Promise<User | undefined> {
