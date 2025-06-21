@@ -9,10 +9,10 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
 interface Agent {
-  id: string;
-  name: string;
+  id: number;
+  agent_name: string;
   description: string;
-  firstMessage: string;
+  first_message: string;
   createdBy: string;
   createdAt: string;
 }
@@ -23,13 +23,15 @@ export default function AgentList() {
   const queryClient = useQueryClient();
 
   // Fetch agents from API
-  const { data: agents = [], isLoading, error } = useQuery({
+  const { data: agentsData, isLoading, error } = useQuery({
     queryKey: ['/api/agents'],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/agents");
       return response.json();
     },
   });
+
+  const agents = agentsData?.agents || [];
 
   // Delete mutation
   const deleteMutation = useMutation({
@@ -53,15 +55,15 @@ export default function AgentList() {
     },
   });
 
-  const handleDelete = (agentId: string) => {
+  const handleDelete = (agentId: number) => {
     if (window.confirm("Are you sure you want to delete this agent?")) {
-      deleteMutation.mutate(agentId);
+      deleteMutation.mutate(agentId.toString());
     }
   };
 
   const filteredAgents = agents.filter((agent: Agent) =>
-    agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    agent.description.toLowerCase().includes(searchTerm.toLowerCase())
+    agent.agent_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    agent.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (error) {
@@ -123,13 +125,13 @@ export default function AgentList() {
       {/* Agent Grid */}
       {!isLoading && filteredAgents.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredAgents.map((agent: Agent) => (
-            <Card key={agent.id} className="hover:shadow-md transition-shadow">
+          {filteredAgents.map((agent: Agent, index: number) => (
+            <Card key={`${agent.id}-${agent.agent_name}-${agent.createdAt}-${index}`} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1 min-w-0 flex-1">
                     <CardTitle className="text-sm font-medium text-gray-900 truncate">
-                      {agent.name}
+                      {agent.agent_name}
                     </CardTitle>
                     <p className="text-xs text-gray-600 line-clamp-2">
                       {agent.description}
@@ -164,7 +166,7 @@ export default function AgentList() {
                   <div>
                     <label className="text-xs font-medium text-gray-700">First Message</label>
                     <p className="text-xs text-gray-600 mt-1 line-clamp-2 bg-gray-50 p-2 rounded">
-                      {agent.firstMessage}
+                      {agent.first_message}
                     </p>
                   </div>
 
