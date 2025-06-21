@@ -10,38 +10,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username, password } = loginSchema.parse(req.body);
 
-      // For development/demo purposes, allow test credentials
-      if (username === "testuser" && password === "password123") {
-        // Create demo user session without calling external API
-        let user = await storage.getUserByUsername(username);
-        if (!user) {
-          user = await storage.createUser({ username, password });
-        }
-
-        const expiresAt = new Date();
-        expiresAt.setHours(expiresAt.getHours() + 24);
-
-        await storage.createSession({
-          userId: user.id,
-          accessToken: "demo_token_" + Date.now(),
-          refreshToken: null,
-          expiresAt,
-        });
-
-        res.cookie("auth_token", "demo_token_" + Date.now(), {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
-          maxAge: 24 * 60 * 60 * 1000,
-        });
-
-        return res.json({ 
-          success: true, 
-          message: "Login successful",
-          user: { id: user.id, username: user.username }
-        });
-      }
-
       // Prepare form data for external API
       const formData = new URLSearchParams({
         grant_type: "password",
@@ -52,6 +20,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         scope: "openid profile email"
       });
 
+      console.log("Calling external API with form data:", formData.toString());
+
       // Call external authentication API
       const response = await fetch("https://ai.metqm.com/api/adminportal/get_accesstoken.cfm", {
         method: "POST",
@@ -60,6 +30,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         body: formData,
       });
+
+      console.log("API Response status:", response.status, response.statusText);
 
       if (!response.ok) {
         return res.status(401).json({ 
@@ -77,13 +49,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("JSON Parse Error:", parseError);
         console.error("Response text:", responseText);
         return res.status(401).json({ 
-          message: "Authentication server returned invalid response format. Try demo credentials: testuser/password123" 
+          message: "Authentication server returned invalid response format." 
         });
       }
       
-      if (!authData.access_token) {
+      // Check for access token in the nested data structure
+      const accessToken = authData.data?.accessToken || authData.access_token;
+      const refreshToken = authData.data?.refreshToken || authData.refresh_token;
+      
+      if (!accessToken) {
         return res.status(401).json({ 
-          message: "Authentication failed. Invalid response from server." 
+          message: "Authentication failed. No access token received." 
         });
       }
 
@@ -99,13 +75,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await storage.createSession({
         userId: user.id,
-        accessToken: authData.access_token,
-        refreshToken: authData.refresh_token || null,
+        accessToken: accessToken,
+        refreshToken: refreshToken || null,
         expiresAt,
       });
 
       // Set secure HTTP-only cookie
-      res.cookie("auth_token", authData.access_token, {
+      res.cookie("auth_token", accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
@@ -173,13 +149,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
-      // For demo tokens, return local data
-      if (token.startsWith("demo_token_")) {
-        const agents = await storage.getAgents();
-        return res.json(agents);
-      }
-
-      // Call external API to get agent list with real token
+      // Call external API to get agent list with auth token
       try {
         const response = await fetch("https://ai.metqm.com/api/adminportal/get_agentlist_r1.cfm", {
           method: "GET",
@@ -190,18 +160,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (!response.ok) {
           console.error("External API error:", response.status, response.statusText);
-          // Fallback to local storage if external API fails
-          const agents = await storage.getAgents();
-          return res.json(agents);
+          return res.status(response.status).json({ 
+            message: "Failed to fetch agents from API" 
+          });
         }
 
         const agents = await response.json();
         res.json(agents);
       } catch (apiError) {
         console.error("External API call failed:", apiError);
-        // Fallback to local storage
-        const agents = await storage.getAgents();
-        res.json(agents);
+        res.status(500).json({ message: "Error connecting to agent API" });
       }
 
     } catch (error) {
