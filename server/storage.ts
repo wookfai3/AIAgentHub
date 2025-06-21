@@ -1,4 +1,4 @@
-import { users, sessions, type User, type InsertUser, type Session, type InsertSession } from "@shared/schema";
+import { users, sessions, agents, type User, type InsertUser, type Session, type InsertSession, type Agent, type InsertAgent } from "@shared/schema";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -7,19 +7,27 @@ export interface IStorage {
   createSession(session: InsertSession): Promise<Session>;
   getSession(userId: number): Promise<Session | undefined>;
   deleteSession(userId: number): Promise<void>;
+  getAgents(): Promise<Agent[]>;
+  createAgent(agent: InsertAgent): Promise<Agent>;
+  updateAgent(id: number, agent: Partial<InsertAgent>): Promise<Agent | undefined>;
+  deleteAgent(id: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private sessions: Map<number, Session>;
+  private agents: Map<number, Agent>;
   private currentUserId: number;
   private currentSessionId: number;
+  private currentAgentId: number;
 
   constructor() {
     this.users = new Map();
     this.sessions = new Map();
+    this.agents = new Map();
     this.currentUserId = 1;
     this.currentSessionId = 1;
+    this.currentAgentId = 1;
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -44,6 +52,7 @@ export class MemStorage implements IStorage {
     const session: Session = { 
       ...insertSession, 
       id, 
+      refreshToken: insertSession.refreshToken || null,
       createdAt: new Date() 
     };
     this.sessions.set(insertSession.userId, session);
@@ -56,6 +65,34 @@ export class MemStorage implements IStorage {
 
   async deleteSession(userId: number): Promise<void> {
     this.sessions.delete(userId);
+  }
+
+  async getAgents(): Promise<Agent[]> {
+    return Array.from(this.agents.values());
+  }
+
+  async createAgent(insertAgent: InsertAgent): Promise<Agent> {
+    const id = this.currentAgentId++;
+    const agent: Agent = { 
+      ...insertAgent, 
+      id, 
+      createdAt: new Date() 
+    };
+    this.agents.set(id, agent);
+    return agent;
+  }
+
+  async updateAgent(id: number, updateData: Partial<InsertAgent>): Promise<Agent | undefined> {
+    const existingAgent = this.agents.get(id);
+    if (!existingAgent) return undefined;
+    
+    const updatedAgent: Agent = { ...existingAgent, ...updateData };
+    this.agents.set(id, updatedAgent);
+    return updatedAgent;
+  }
+
+  async deleteAgent(id: number): Promise<void> {
+    this.agents.delete(id);
   }
 }
 
