@@ -121,6 +121,7 @@ Complete set of accessible components including:
 ## Changelog
 - June 20, 2025. Initial setup with login page and external API authentication
 - June 21, 2025. Added dashboard with collapsible sidebar, agent management interface, and CRUD API endpoints
+- June 22, 2025. Added sliding form UI for agent creation/editing with external API integration for agent creation
 
 ## User Preferences
 

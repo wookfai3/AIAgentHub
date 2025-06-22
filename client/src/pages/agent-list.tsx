@@ -16,9 +16,9 @@ import { insertAgentSchema } from "@shared/schema";
 
 interface Agent {
   id: number;
-  agent_name: string;
+  name: string;
   description: string;
-  first_message: string;
+  firstMessage: string;
   createdBy: string;
   createdAt: string;
 }
@@ -34,9 +34,9 @@ export default function AgentList() {
   const form = useForm({
     resolver: zodResolver(insertAgentSchema),
     defaultValues: {
-      agent_name: "",
+      name: "",
       description: "",
-      first_message: "",
+      firstMessage: "",
       createdBy: "admin" // Default user
     }
   });
@@ -110,9 +110,9 @@ export default function AgentList() {
   const handleEdit = (agent: Agent) => {
     setEditingAgent(agent);
     form.reset({
-      agent_name: agent.agent_name,
+      name: agent.name,
       description: agent.description,
-      first_message: agent.first_message,
+      firstMessage: agent.firstMessage,
       createdBy: agent.createdBy
     });
     setIsSheetOpen(true);
@@ -121,9 +121,9 @@ export default function AgentList() {
   const handleNew = () => {
     setEditingAgent(null);
     form.reset({
-      agent_name: "",
+      name: "",
       description: "",
-      first_message: "",
+      firstMessage: "",
       createdBy: "admin"
     });
     setIsSheetOpen(true);
@@ -134,7 +134,7 @@ export default function AgentList() {
   };
 
   const filteredAgents = agents.filter((agent: Agent) =>
-    agent.agent_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    agent.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     agent.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -198,12 +198,12 @@ export default function AgentList() {
       {!isLoading && filteredAgents.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredAgents.map((agent: Agent, index: number) => (
-            <Card key={`${agent.id}-${agent.agent_name}-${agent.createdAt}-${index}`} className="hover:shadow-md transition-shadow">
+            <Card key={`${agent.id}-${agent.name}-${agent.createdAt}-${index}`} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1 min-w-0 flex-1">
                     <CardTitle className="text-sm font-medium text-gray-900 truncate">
-                      {agent.agent_name}
+                      {agent.name}
                     </CardTitle>
                     <p className="text-xs text-gray-600 line-clamp-2">
                       {agent.description}
@@ -239,7 +239,7 @@ export default function AgentList() {
                   <div>
                     <label className="text-xs font-medium text-gray-700">First Message</label>
                     <p className="text-xs text-gray-600 mt-1 line-clamp-2 bg-gray-50 p-2 rounded">
-                      {agent.first_message}
+                      {agent.firstMessage}
                     </p>
                   </div>
 
@@ -273,7 +273,7 @@ export default function AgentList() {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-6">
                 <FormField
                   control={form.control}
-                  name="agent_name"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-medium text-gray-700">Agent Name</FormLabel>
@@ -305,7 +305,7 @@ export default function AgentList() {
 
                 <FormField
                   control={form.control}
-                  name="first_message"
+                  name="firstMessage"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-medium text-gray-700">First Message</FormLabel>

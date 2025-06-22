@@ -188,8 +188,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const agentData = insertAgentSchema.parse(req.body);
-      const agent = await storage.createAgent(agentData);
-      res.status(201).json(agent);
+      
+      // Prepare form data for external API
+      const formData = new URLSearchParams({
+        prompt: agentData.name,
+        first_message: agentData.firstMessage,
+        descp: agentData.description
+      });
+
+      console.log("Creating agent with external API, form data:", formData.toString());
+
+      // Call external API to create agent
+      const response = await fetch("https://ai.metqm.com/api/adminportal/put_addagent.cfm", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: formData,
+      });
+
+      console.log("External API Response status:", response.status);
+      
+      if (!response.ok) {
+        console.error("External API error:", response.status, response.statusText);
+        return res.status(response.status).json({ 
+          message: "Failed to create agent via external API" 
+        });
+      }
+
+      const apiResult = await response.json();
+      console.log("External API Response:", apiResult);
+
+      if (!apiResult.success) {
+        return res.status(400).json({ 
+          message: apiResult.error || "Failed to create agent" 
+        });
+      }
+
+      // Store the agent locally with the external API data
+      const createdAgent = await storage.createAgent({
+        name: agentData.name,
+        description: agentData.description,
+        firstMessage: agentData.firstMessage,
+        createdBy: agentData.createdBy
+      });
+
+      res.status(201).json({ 
+        success: true, 
+        agent: createdAgent,
+        externalData: apiResult.data 
+      });
 
     } catch (error) {
       if (error instanceof z.ZodError) {
