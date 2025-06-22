@@ -16,6 +16,7 @@ import { insertAgentSchema } from "@shared/schema";
 
 interface Agent {
   id: number;
+  externalId: number; // <-- Add this!
   prompt: string;
   description: string;
   first_message: string;
@@ -55,7 +56,7 @@ export default function AgentList() {
   // Create/Update mutation
   const saveAgentMutation = useMutation({
     mutationFn: async (agentData: any) => {
-      const url = editingAgent ? `/api/agents/${editingAgent.id}` : "/api/agents";
+      const url = editingAgent ? `/api/agents/${editingAgent.externalId}` : "/api/agents";
       const method = editingAgent ? "PATCH" : "POST";
       const response = await apiRequest(method, url, agentData);
       return response.json();
