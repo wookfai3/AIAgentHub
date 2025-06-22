@@ -8,6 +8,7 @@ export interface IStorage {
   getSession(userId: number): Promise<Session | undefined>;
   deleteSession(userId: number): Promise<void>;
   getAgents(): Promise<Agent[]>;
+  getAgent(id: number): Promise<Agent | undefined>;
   createAgent(agent: InsertAgent): Promise<Agent>;
   updateAgent(id: number, agent: Partial<InsertAgent>): Promise<Agent | undefined>;
   deleteAgent(id: number): Promise<void>;
@@ -105,6 +106,10 @@ export class MemStorage implements IStorage {
 
   async getAgents(): Promise<Agent[]> {
     return Array.from(this.agents.values());
+  }
+
+  async getAgent(id: number): Promise<Agent | undefined> {
+    return this.agents.get(id);
   }
 
   async createAgent(insertAgent: InsertAgent): Promise<Agent> {
