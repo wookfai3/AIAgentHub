@@ -23,6 +23,7 @@ export const agents = pgTable("agents", {
   description: text("description").notNull(),
   firstMessage: text("first_message").notNull(),
   createdBy: text("created_by").notNull(),
+  externalId: text("external_id"), // Store the external agent ID from API
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

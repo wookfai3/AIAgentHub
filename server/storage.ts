@@ -61,6 +61,7 @@ export class MemStorage implements IStorage {
       const agent: Agent = {
         ...agentData,
         id,
+        externalId: null,
         createdAt: new Date()
       };
       this.agents.set(id, agent);
@@ -117,6 +118,7 @@ export class MemStorage implements IStorage {
     const agent: Agent = { 
       ...insertAgent, 
       id, 
+      externalId: insertAgent.externalId || null,
       createdAt: new Date() 
     };
     this.agents.set(id, agent);

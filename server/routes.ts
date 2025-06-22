@@ -231,7 +231,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: agentData.name,
         description: agentData.description,
         firstMessage: agentData.firstMessage,
-        createdBy: agentData.createdBy
+        createdBy: agentData.createdBy,
+        externalId: apiResult.data.id.toString() // Store the external ID
       });
 
       res.status(201).json({ 
@@ -272,9 +273,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Agent not found" });
       }
 
+      // Use the stored external ID or fall back to local ID if no external ID exists
+      const externalAgentId = existingAgent.externalId || agentId.toString();
+      
       // Prepare form data for external API using either updated values or existing ones
       const formData = new URLSearchParams({
-        id: "31", // Use the external agent ID from your example
+        id: externalAgentId,
         prompt: updateData.name || existingAgent.name,
         first_message: updateData.firstMessage || existingAgent.firstMessage,
         descp: updateData.description || existingAgent.description
