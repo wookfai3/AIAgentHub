@@ -37,22 +37,22 @@ export class MemStorage implements IStorage {
   private seedDemoAgents() {
     const demoAgents = [
       {
-        name: "Customer Support Agent",
+        prompt: "Customer Support Agent",
         description: "Handles customer inquiries and support tickets",
-        firstMessage: "Hello! I'm here to help you with any questions or issues you may have.",
-        createdBy: "admin",
+        first_message: "Hello! I'm here to help you with any questions or issues you may have.",
+        created_by: "admin",
       },
       {
-        name: "Sales Assistant",
+        prompt: "Sales Assistant",
         description: "Helps with product information and sales inquiries",
-        firstMessage: "Hi there! I can help you find the perfect product for your needs.",
-        createdBy: "admin",
+        first_message: "Hi there! I can help you find the perfect product for your needs.",
+        created_by: "admin",
       },
       {
-        name: "Technical Support",
+        prompt: "Technical Support",
         description: "Provides technical assistance and troubleshooting",
-        firstMessage: "Welcome! I'm here to help resolve any technical issues you're experiencing.",
-        createdBy: "admin",
+        first_message: "Welcome! I'm here to help resolve any technical issues you're experiencing.",
+        created_by: "admin",
       }
     ];
 
@@ -62,7 +62,7 @@ export class MemStorage implements IStorage {
         ...agentData,
         id,
         externalId: null,
-        createdAt: new Date()
+        created_at: new Date()
       };
       this.agents.set(id, agent);
     });
@@ -119,7 +119,7 @@ export class MemStorage implements IStorage {
       ...insertAgent, 
       id, 
       externalId: insertAgent.externalId || null,
-      createdAt: new Date() 
+      created_at: new Date() 
     };
     this.agents.set(id, agent);
     return agent;

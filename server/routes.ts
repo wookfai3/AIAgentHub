@@ -191,8 +191,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Prepare form data for external API
       const formData = new URLSearchParams({
-        prompt: agentData.name,
-        first_message: agentData.firstMessage,
+        prompt: agentData.prompt,
+        first_message: agentData.first_message,
         descp: agentData.description
       });
 
@@ -228,10 +228,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Store the agent locally with the external API data
       const createdAgent = await storage.createAgent({
-        name: agentData.name,
+        prompt: agentData.prompt,
         description: agentData.description,
-        firstMessage: agentData.firstMessage,
-        createdBy: agentData.createdBy,
+        first_message: agentData.first_message,
+        created_by: agentData.created_by,
         externalId: apiResult.data.id.toString() // Store the external ID
       });
 
@@ -255,7 +255,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update agent
-  app.patch("/api/agents/:id", async (req, res) => {
+  app.patch("/api/agents/:externalId", async (req, res) => {
     try {
       const token = req.cookies?.auth_token;
       
@@ -263,39 +263,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
-      const agentId = parseInt(req.params.id);
+      const externalId = req.params.externalId;
       const updateData = insertAgentSchema.partial().parse(req.body);
       
-      // Get the existing agent first without updating
-      const existingAgent = await storage.getAgent(agentId);
-      
-      if (!existingAgent) {
-        return res.status(404).json({ message: "Agent not found" });
-      }
-
-      // Check if this agent has an external ID - if not, it's a demo agent that can't be updated externally
-      if (!existingAgent.externalId) {
-        console.log("Agent has no external ID - updating locally only (demo agent)");
-        const updatedLocalAgent = await storage.updateAgent(agentId, updateData);
-        return res.json({ 
-          success: true, 
-          agent: updatedLocalAgent,
-          message: "Demo agent updated locally only" 
-        });
-      }
-      
-      // Prepare form data for external API using either updated values or existing ones
-      const formData = new URLSearchParams({
-        id: existingAgent.externalId,
-        prompt: updateData.name || existingAgent.name,
-        first_message: updateData.firstMessage || existingAgent.firstMessage,
-        descp: updateData.description || existingAgent.description
-      });
-
       console.log("=== UPDATING AGENT ===");
-      console.log("Agent ID:", agentId);
+      console.log("External Agent ID:", externalId);
       console.log("Update Data:", updateData);
-      console.log("Existing Agent:", existingAgent);
+      
+      // Prepare form data for external API
+      const formData = new URLSearchParams();
+      formData.append("id", externalId);
+      if (updateData.prompt) formData.append("prompt", updateData.prompt);
+      if (updateData.first_message) formData.append("first_message", updateData.first_message);
+      if (updateData.description) formData.append("descp", updateData.description);
 
       console.log("=== CALLING EXTERNAL UPDATE API ===");
       console.log("URL: https://ai.metqm.com/api/adminportal/put_editagent.cfm");
@@ -321,6 +301,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!response.ok) {
         console.error("External API HTTP error:", response.status, response.statusText);
+        
+        // For demo agents (IDs 1-3), update locally when external API fails
+        if (parseInt(externalId) <= 3) {
+          console.log("Demo agent - updating locally due to external API HTTP error");
+          const updatedAgent = await storage.updateAgent(parseInt(externalId), {
+            prompt: updateData.prompt,
+            description: updateData.description,
+            first_message: updateData.first_message,
+            created_by: updateData.created_by
+          });
+          
+          return res.json({ 
+            success: true, 
+            message: "Agent updated locally (external API unavailable)",
+            agent: updatedAgent
+          });
+        }
+        
         return res.status(response.status).json({ 
           message: `Failed to update agent via external API: ${response.status} ${response.statusText}` 
         });
@@ -340,17 +338,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!apiResult.success) {
         console.error("External API returned success: false", apiResult);
-        return res.status(400).json({ 
-          message: apiResult.error || "Failed to update agent" 
+        
+        // For demo agents (IDs 1-3), update locally when external API fails
+        if (parseInt(externalId) <= 3) {
+          console.log("Demo agent - updating locally despite external API error");
+          const updatedAgent = await storage.updateAgent(parseInt(externalId), {
+            prompt: updateData.prompt,
+            description: updateData.description,
+            first_message: updateData.first_message,
+            created_by: updateData.created_by
+          });
+          
+          return res.json({ 
+            success: true, 
+            message: "Agent updated locally (external API unavailable)",
+            agent: updatedAgent
+          });
+        }
+        
+        return res.status(500).json({ 
+          message: `Failed to update agent via external API: ${apiResult.error}` 
         });
       }
 
-      // Update local storage after successful external API call
-      const updatedLocalAgent = await storage.updateAgent(agentId, updateData);
-
       res.json({ 
         success: true, 
-        agent: updatedLocalAgent,
+        message: "Agent updated successfully via external API",
         externalData: apiResult.data 
       });
 

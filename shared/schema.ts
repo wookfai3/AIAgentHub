@@ -19,12 +19,12 @@ export const sessions = pgTable("sessions", {
 
 export const agents = pgTable("agents", {
   id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  firstMessage: text("first_message").notNull(),
-  createdBy: text("created_by").notNull(),
+  prompt: text("prompt").notNull(),
+  description: text("description").notNull(), 
+  first_message: text("first_message").notNull(),
+  created_by: text("created_by").notNull(),
   externalId: text("external_id"), // Store the external agent ID from API
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -44,7 +44,7 @@ export const insertSessionSchema = createInsertSchema(sessions).omit({
 
 export const insertAgentSchema = createInsertSchema(agents).omit({
   id: true,
-  createdAt: true,
+  created_at: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
