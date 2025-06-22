@@ -273,12 +273,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Agent not found" });
       }
 
-      // Use the stored external ID or fall back to local ID if no external ID exists
-      const externalAgentId = existingAgent.externalId || agentId.toString();
+      // Check if this agent has an external ID - if not, it's a demo agent that can't be updated externally
+      if (!existingAgent.externalId) {
+        console.log("Agent has no external ID - updating locally only (demo agent)");
+        const updatedLocalAgent = await storage.updateAgent(agentId, updateData);
+        return res.json({ 
+          success: true, 
+          agent: updatedLocalAgent,
+          message: "Demo agent updated locally only" 
+        });
+      }
       
       // Prepare form data for external API using either updated values or existing ones
       const formData = new URLSearchParams({
-        id: externalAgentId,
+        id: existingAgent.externalId,
         prompt: updateData.name || existingAgent.name,
         first_message: updateData.firstMessage || existingAgent.firstMessage,
         descp: updateData.description || existingAgent.description
