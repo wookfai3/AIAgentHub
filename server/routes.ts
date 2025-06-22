@@ -254,7 +254,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update agent
-  app.put("/api/agents/:id", async (req, res) => {
+  app.patch("/api/agents/:id", async (req, res) => {
     try {
       const token = req.cookies?.auth_token;
       
@@ -265,13 +265,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const agentId = parseInt(req.params.id);
       const updateData = insertAgentSchema.partial().parse(req.body);
       
-      const updatedAgent = await storage.updateAgent(agentId, updateData);
+      // Get the existing agent to get external ID if needed
+      const existingAgent = await storage.updateAgent(agentId, updateData);
       
-      if (!updatedAgent) {
+      if (!existingAgent) {
         return res.status(404).json({ message: "Agent not found" });
       }
 
-      res.json(updatedAgent);
+      // Prepare form data for external API
+      const formData = new URLSearchParams({
+        id: agentId.toString(), // Using local ID, may need external agent_id
+        prompt: updateData.name || existingAgent.name,
+        first_message: updateData.firstMessage || existingAgent.firstMessage,
+        descp: updateData.description || existingAgent.description
+      });
+
+      console.log("Updating agent with external API, form data:", formData.toString());
+
+      // Call external API to update agent
+      const response = await fetch("https://ai.metqm.com/api/adminportal/put_editagent.cfm", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: formData,
+      });
+
+      console.log("External API Response status:", response.status);
+      
+      if (!response.ok) {
+        console.error("External API error:", response.status, response.statusText);
+        return res.status(response.status).json({ 
+          message: "Failed to update agent via external API" 
+        });
+      }
+
+      const apiResult = await response.json();
+      console.log("External API Response:", apiResult);
+
+      if (!apiResult.success) {
+        return res.status(400).json({ 
+          message: apiResult.error || "Failed to update agent" 
+        });
+      }
+
+      res.json({ 
+        success: true, 
+        agent: existingAgent,
+        externalData: apiResult.data 
+      });
 
     } catch (error) {
       if (error instanceof z.ZodError) {
